@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key, required this.title});
@@ -13,6 +14,7 @@ class _MainPageState extends State<MainPage> {
   final TextEditingController addressTextController = TextEditingController();
   final TextEditingController loginTextController = TextEditingController();
   final TextEditingController passwordTextController = TextEditingController();
+  final TextEditingController portTextController = TextEditingController();
 
   bool showPassword = false;
 
@@ -36,9 +38,11 @@ class _MainPageState extends State<MainPage> {
                 children: [
                   _buildTextField(addressTextController, 'Host'),
                   const SizedBox(width: 20),
-                  _buildTextField(loginTextController, 'login'),
+                  _buildTextField(loginTextController, 'Login'),
                   const SizedBox(width: 20),
                   _buildPasswordField(passwordTextController, 'Password'),
+                  const SizedBox(width: 20),
+                  _buildPortField(portTextController, 'Port'),
                   const SizedBox(width: 20),
                   _buildOutlinedButton(themeColor),
                 ],
@@ -57,7 +61,7 @@ class _MainPageState extends State<MainPage> {
     String title,
   ) {
     return Expanded(
-      flex: 1,
+      flex: 4,
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
@@ -70,7 +74,7 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildPasswordField(TextEditingController controller, String title) {
     return Expanded(
-      flex: 1,
+      flex: 4,
       child: TextField(
         obscureText: !showPassword,
         obscuringCharacter: '*',
@@ -88,6 +92,21 @@ class _MainPageState extends State<MainPage> {
               const Text('Show password'),
             ],
           ),
+          labelText: title,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPortField(TextEditingController controller, String title) {
+    return Expanded(
+      flex: 1,
+      child: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
           labelText: title,
         ),
       ),
