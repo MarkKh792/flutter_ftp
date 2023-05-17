@@ -12,9 +12,13 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final TextEditingController addressTextController = TextEditingController();
-  final TextEditingController loginTextController = TextEditingController();
-  final TextEditingController passwordTextController = TextEditingController();
+  // You can set controllers initial values to avoid entering them every time
+  final TextEditingController addressTextController =
+      TextEditingController(text: '192.168.1.167');
+  final TextEditingController loginTextController =
+      TextEditingController(text: 'ftp');
+  final TextEditingController passwordTextController =
+      TextEditingController(text: 'ftp');
   final TextEditingController portTextController =
       TextEditingController(text: '21');
 
@@ -52,11 +56,27 @@ class _MainPageState extends State<MainPage> {
                     initialData: false,
                     stream: ftpManager.connectionStream,
                     builder: (context, snapshot) {
-                      return _buildOutlinedButton(themeColor, snapshot.data!);
+                      return _buildOutlinedButton(
+                        themeColor,
+                        _getConnectionButtonSpecs(snapshot.data!),
+                      );
                     },
                   ),
                 ],
               ),
+              StreamBuilder<bool>(
+                  initialData: false,
+                  stream: ftpManager.connectionStream,
+                  builder: (context, snapshot) {
+                    return Row(
+                      children: [
+                        _buildOutlinedButton(
+                          themeColor,
+                          _getGetDirectoryContentButtonSpecs(snapshot.data!),
+                        ),
+                      ],
+                    );
+                  }),
               const SizedBox(height: 10),
               Expanded(child: Container(color: Colors.grey))
             ],
@@ -123,28 +143,50 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget _buildOutlinedButton(Color backgroundColor, bool isConnected) {
+  Widget _buildOutlinedButton(
+    Color backgroundColor,
+    (void Function()? onTap, Widget title) specs,
+  ) {
     return SizedBox(
       width: 200,
       height: 55,
       child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          backgroundColor: backgroundColor,
-        ),
-        onPressed: () {
-          !isConnected
-              ? ftpManager.connect(
-                  addressTextController.text,
-                  loginTextController.text,
-                  passwordTextController.text,
-                  int.parse(portTextController.text),
-                )
-              : ftpManager.disconnect();
-        },
-        child: Text(
-          isConnected ? 'Disconnect' : 'Connect',
-          style: const TextStyle(fontSize: 20, color: Colors.black),
-        ),
+          style: OutlinedButton.styleFrom(
+            backgroundColor: backgroundColor,
+          ),
+          onPressed: specs.$1,
+          child: specs.$2),
+    );
+  }
+
+  (void Function() onTap, Widget title) _getConnectionButtonSpecs(
+    bool isConnected,
+  ) {
+    return (
+      () => !isConnected
+          ? ftpManager.connect(
+              addressTextController.text,
+              loginTextController.text,
+              passwordTextController.text,
+              int.parse(portTextController.text),
+            )
+          : ftpManager.disconnect(),
+      Text(
+        isConnected ? 'Disconnect' : 'Connect',
+        style: const TextStyle(fontSize: 20, color: Colors.black),
+      ),
+    );
+  }
+
+  (void Function()? onTap, Widget title) _getGetDirectoryContentButtonSpecs(
+    bool isConnected,
+  ) {
+    return (
+      isConnected ? () => ftpManager.getDirectoryContent() : null,
+      Text(
+        'Get directory content',
+        style: TextStyle(
+            fontSize: 14, color: isConnected ? Colors.black : Colors.grey),
       ),
     );
   }

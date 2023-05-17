@@ -7,16 +7,18 @@ class FtpManager {
   late final FTPConnect ftpConnect;
   bool _isConnected = false;
   bool get isConnected => _isConnected;
-  final StreamController<bool> _connectionController = StreamController();
+  final StreamController<bool> _connectionController =
+      StreamController.broadcast();
   Stream<bool> get connectionStream => _connectionController.stream;
 
   void connect(String host, String login, String password, int port) async {
     ftpConnect = FTPConnect(host, user: login, pass: password, port: port);
 
     try {
-      _isConnected = await ftpConnect.connect();
+      bool result = await ftpConnect.connect();
+      _updateConnectionState(result);
     } catch (e) {
-      log('Connection error!', name: 'ERROR');
+      _logErrorMessage('Connection error!');
     }
 
     _logMessage('Connected: $_isConnected');
@@ -29,7 +31,7 @@ class FtpManager {
       bool result = await ftpConnect.disconnect();
       result ? _isConnected = false : null;
     } catch (e) {
-      log('Disconnection error!', name: 'ERROR');
+      _logErrorMessage('Disconnection error!');
     }
 
     _connectionController.sink.add(_isConnected);
@@ -37,7 +39,31 @@ class FtpManager {
     _logMessage('Connected $_isConnected');
   }
 
+  void getDirectoryContent() async {
+    try {
+      final files = await ftpConnect.listDirectoryContent();
+      _logMessage(files.toString());
+    } on FTPConnectException catch (e) {
+      if (e.message.contains('Timeout')) {
+        _updateConnectionState(false);
+      }
+
+      _logErrorMessage(e.toString());
+    } catch (e) {
+      _logErrorMessage(e.toString());
+    }
+  }
+
+  void _updateConnectionState(bool connectionState) {
+    _isConnected = connectionState;
+    _connectionController.sink.add(connectionState);
+  }
+
   void _logMessage(String message) {
     log(message, name: 'FTP response');
+  }
+
+  void _logErrorMessage(String message) {
+    log(message, name: 'ERROR');
   }
 }
