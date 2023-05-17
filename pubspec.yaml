@@ -11,7 +11,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  ftpconnect: ^2.0.5
+  ftpconnect:
+    git:
+      url: https://github.com/MarkKh792/dartFTP.git
+      ref: master
 
   cupertino_icons: ^1.0.2
 

@@ -78,10 +78,11 @@ packages:
   ftpconnect:
     dependency: "direct main"
     description:
-      name: ftpconnect
-      sha256: "6445074d957fe6f5ca8c68c95538132509d4b3256806fcfa35d8e59033b398c0"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: master
+      resolved-ref: e77622169bf99d09d0219c73dd3c8c61c7fc8774
+      url: "https://github.com/MarkKh792/dartFTP.git"
+    source: git
     version: "2.0.5"
   intl:
     dependency: transitive
