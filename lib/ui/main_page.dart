@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_ftp/ftp_manager.dart';
+
+import '../ftp_manager.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key, required this.title});
@@ -73,6 +74,11 @@ class _MainPageState extends State<MainPage> {
                         _buildOutlinedButton(
                           themeColor,
                           _getGetDirectoryContentButtonSpecs(snapshot.data!),
+                        ),
+                        const SizedBox(width: 10),
+                        _buildOutlinedButton(
+                          themeColor,
+                          _getGetDirectoryNamesButtonSpecs(snapshot.data!),
                         ),
                       ],
                     );
@@ -185,6 +191,19 @@ class _MainPageState extends State<MainPage> {
       isConnected ? () => ftpManager.getDirectoryContent() : null,
       Text(
         'Get directory content',
+        style: TextStyle(
+            fontSize: 14, color: isConnected ? Colors.black : Colors.grey),
+      ),
+    );
+  }
+
+  (void Function()? onTap, Widget title) _getGetDirectoryNamesButtonSpecs(
+    bool isConnected,
+  ) {
+    return (
+      isConnected ? () => ftpManager.getDirectoryNames() : null,
+      Text(
+        'Get names only',
         style: TextStyle(
             fontSize: 14, color: isConnected ? Colors.black : Colors.grey),
       ),

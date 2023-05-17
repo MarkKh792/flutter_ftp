@@ -36,12 +36,28 @@ class FtpManager {
 
     _connectionController.sink.add(_isConnected);
 
-    _logMessage('Connected $_isConnected');
+    _logMessage('Connected: $_isConnected');
+  }
+
+  void getDirectoryNames() async {
+    try {
+      final names =
+          await ftpConnect.listDirectoryContentOnlyNames(ListCommand.NLST);
+      _logMessage(names.toString());
+    } on FTPConnectException catch (e) {
+      if (e.message.contains('Timeout')) {
+        _updateConnectionState(false);
+      }
+
+      _logErrorMessage(e.message);
+    } catch (e) {
+      _logErrorMessage(e.toString());
+    }
   }
 
   void getDirectoryContent() async {
     try {
-      final files = await ftpConnect.listDirectoryContent();
+      final files = await ftpConnect.listDirectoryContent(ListCommand.LIST);
       _logMessage(files.toString());
     } on FTPConnectException catch (e) {
       if (e.message.contains('Timeout')) {

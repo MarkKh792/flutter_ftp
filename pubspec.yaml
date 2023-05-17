@@ -14,7 +14,7 @@ dependencies:
   ftpconnect:
     git:
       url: https://github.com/MarkKh792/dartFTP.git
-      ref: master
+      ref: list-command-support 
 
   cupertino_icons: ^1.0.2
 
