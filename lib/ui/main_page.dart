@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_ftp/ftp_manager.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key, required this.title});
@@ -14,9 +15,12 @@ class _MainPageState extends State<MainPage> {
   final TextEditingController addressTextController = TextEditingController();
   final TextEditingController loginTextController = TextEditingController();
   final TextEditingController passwordTextController = TextEditingController();
-  final TextEditingController portTextController = TextEditingController();
+  final TextEditingController portTextController =
+      TextEditingController(text: '21');
 
   bool showPassword = false;
+
+  FtpManager ftpManager = FtpManager();
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +48,13 @@ class _MainPageState extends State<MainPage> {
                   const SizedBox(width: 20),
                   _buildPortField(portTextController, 'Port'),
                   const SizedBox(width: 20),
-                  _buildOutlinedButton(themeColor),
+                  StreamBuilder<bool>(
+                    initialData: false,
+                    stream: ftpManager.connectionStream,
+                    builder: (context, snapshot) {
+                      return _buildOutlinedButton(themeColor, snapshot.data!);
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -113,7 +123,7 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget _buildOutlinedButton(Color backgroundColor) {
+  Widget _buildOutlinedButton(Color backgroundColor, bool isConnected) {
     return SizedBox(
       width: 200,
       height: 55,
@@ -121,10 +131,19 @@ class _MainPageState extends State<MainPage> {
         style: OutlinedButton.styleFrom(
           backgroundColor: backgroundColor,
         ),
-        onPressed: () {},
-        child: const Text(
-          'Connect',
-          style: TextStyle(fontSize: 20, color: Colors.black),
+        onPressed: () {
+          !isConnected
+              ? ftpManager.connect(
+                  addressTextController.text,
+                  loginTextController.text,
+                  passwordTextController.text,
+                  int.parse(portTextController.text),
+                )
+              : ftpManager.disconnect();
+        },
+        child: Text(
+          isConnected ? 'Disconnect' : 'Connect',
+          style: const TextStyle(fontSize: 20, color: Colors.black),
         ),
       ),
     );
