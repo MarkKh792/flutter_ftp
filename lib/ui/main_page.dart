@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ftpconnect/ftpconnect.dart';
 
 import '../ftp_manager.dart';
 
@@ -84,7 +85,14 @@ class _MainPageState extends State<MainPage> {
                     );
                   }),
               const SizedBox(height: 10),
-              Expanded(child: Container(color: Colors.grey))
+              Expanded(
+                  child: StreamBuilder<List<FTPEntry>>(
+                initialData: const [],
+                stream: ftpManager.filesStream,
+                builder: (context, snapshot) {
+                  return _buildFilesList(snapshot.data!);
+                },
+              ) /*Container(color: Colors.grey)*/)
             ],
           ),
         ),
@@ -162,6 +170,23 @@ class _MainPageState extends State<MainPage> {
           ),
           onPressed: specs.$1,
           child: specs.$2),
+    );
+  }
+
+  Widget _buildFilesList(List<FTPEntry> elements) {
+    return ListView(
+      children: [
+        for (int i = 0; i < elements.length; i++)
+          ListTile(
+            title: Text(
+                '[${elements[i].type.name}]  ${elements[i].size}  ${elements[i].name}'),
+            onTap: () {
+              if (elements[i].type == FTPEntryType.DIR) {
+                ftpManager.changeDirectory(elements[i].name);
+              }
+            },
+          )
+      ],
     );
   }
 

@@ -6,9 +6,12 @@ import 'package:ftpconnect/ftpconnect.dart';
 class FtpManager {
   late final FTPConnect ftpConnect;
   bool _isConnected = false;
-  bool get isConnected => _isConnected;
   final StreamController<bool> _connectionController =
       StreamController.broadcast();
+  final StreamController<List<FTPEntry>> _filesController = StreamController();
+
+  bool get isConnected => _isConnected;
+  Stream<List<FTPEntry>> get filesStream => _filesController.stream;
   Stream<bool> get connectionStream => _connectionController.stream;
 
   void connect(String host, String login, String password, int port) async {
@@ -58,7 +61,26 @@ class FtpManager {
   void getDirectoryContent() async {
     try {
       final files = await ftpConnect.listDirectoryContent(ListCommand.LIST);
+      _filesController.add(files);
       _logMessage(files.toString());
+    } on FTPConnectException catch (e) {
+      if (e.message.contains('Timeout')) {
+        _updateConnectionState(false);
+      }
+
+      _logErrorMessage(e.toString());
+    } catch (e) {
+      _logErrorMessage(e.toString());
+    }
+  }
+
+  void changeDirectory(String name) async {
+    try {
+      final status = await ftpConnect.changeDirectory(name);
+      _logMessage('Changed directory to $name: $status');
+
+      // Get the content of this directory
+      getDirectoryContent();
     } on FTPConnectException catch (e) {
       if (e.message.contains('Timeout')) {
         _updateConnectionState(false);
