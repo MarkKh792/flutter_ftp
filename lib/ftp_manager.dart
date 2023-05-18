@@ -32,7 +32,7 @@ class FtpManager {
       _updateConnectionState(result);
       _logMessage('CONNECT', 'Connected: $_isConnected');
     } catch (e) {
-      _logErrorMessage('CONNECT', 'Connection error!');
+      _logErrorMessage('CONNECT', 'Connection error!, ${e.toString()}');
     }
 
     _connectionController.sink.add(_isConnected);
@@ -43,7 +43,7 @@ class FtpManager {
       bool result = await ftpConnect.disconnect();
       result ? _isConnected = false : null;
     } catch (e) {
-      _logErrorMessage('DISCONNECT', 'Disconnection error!');
+      _logErrorMessage('DISCONNECT', 'Disconnection error!, ${e.toString()}');
     }
 
     _connectionController.sink.add(_isConnected);
@@ -61,7 +61,7 @@ class FtpManager {
         _updateConnectionState(false);
       }
 
-      _logErrorMessage('GET DIR NAMES', e.message);
+      _logErrorMessage('GET DIR NAMES', e.toString());
     } catch (e) {
       _logErrorMessage('GET DIR NAMES', e.toString());
     }
@@ -152,11 +152,9 @@ class FtpManager {
 
   void _logMessage(String prefix, String message) {
     logger.i('[$prefix]: $message.');
-    //log(message, name: 'FTP response');
   }
 
   void _logErrorMessage(String prefix, String message) {
     logger.e('[$prefix]: $message');
-    //log(message, name: 'ERROR');
   }
 }
