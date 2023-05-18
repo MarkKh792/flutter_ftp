@@ -116,24 +116,40 @@ class FtpManager {
     FTPEntryType type,
     String contentName,
     String destinationPath,
-  ) {
+  ) async {
     if (downloadDirectory == null) {
       _logErrorMessage('DOWNLOAD', 'Didn\'t found the "Downloads" directory!');
       return;
     }
 
-    if (type == FTPEntryType.DIR) {
-      final Directory destinationDir =
-          Directory('${downloadDirectory!.path}/$contentName');
-      ftpConnect.downloadDirectory(
-          contentName, destinationDir, ListCommand.LIST);
-      return;
-    }
+    try {
+      bool success = false;
 
-    if (type == FTPEntryType.FILE) {
-      final destinationPath = downloadDirectory!.path;
-      final File destinationFile = File('$destinationPath/$contentName');
-      ftpConnect.downloadFile(contentName, destinationFile);
+      if (type == FTPEntryType.DIR) {
+        final Directory destinationDir =
+            Directory('${downloadDirectory!.path}/$contentName');
+        success = await ftpConnect.downloadDirectory(
+            contentName, destinationDir, ListCommand.LIST);
+        return;
+      }
+
+      if (type == FTPEntryType.FILE) {
+        final destinationPath = downloadDirectory!.path;
+        final File destinationFile = File('$destinationPath/$contentName');
+        success = await ftpConnect.downloadFile(contentName, destinationFile);
+      }
+      _logMessage(
+        'DOWNLOAD',
+        success ? 'Download succeeded' : 'Download failed',
+      );
+    } on FTPConnectException catch (e) {
+      if (e.message.contains('Timeout')) {
+        _updateConnectionState(false);
+      }
+
+      _logErrorMessage('DOWNLOAD', e.toString());
+    } catch (e) {
+      _logErrorMessage('DOWNLOAD', e.toString());
     }
   }
 
