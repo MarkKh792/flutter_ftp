@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:ftpconnect/ftpconnect.dart';
 
@@ -7,6 +8,7 @@ class FtpManager {
   late final FTPConnect ftpConnect;
   bool _isConnected = false;
   List<String> history = ['/'];
+  late final Directory? downloadDirectory;
   final StreamController<bool> _connectionController =
       StreamController.broadcast();
   final StreamController<List<FTPEntry>> _filesController = StreamController();
@@ -90,6 +92,31 @@ class FtpManager {
       _logErrorMessage(e.toString());
     } catch (e) {
       _logErrorMessage(e.toString());
+    }
+  }
+
+  void downloadContent(
+    FTPEntryType type,
+    String contentName,
+    String destinationPath,
+  ) {
+    if (downloadDirectory == null) {
+      _logErrorMessage('Can\'t find the "Downloads" directory!');
+      return;
+    }
+
+    if (type == FTPEntryType.DIR) {
+      final Directory destinationDir =
+          Directory('${downloadDirectory!.path}/$contentName');
+      ftpConnect.downloadDirectory(
+          contentName, destinationDir, ListCommand.LIST);
+      return;
+    }
+
+    if (type == FTPEntryType.FILE) {
+      final destinationPath = downloadDirectory!.path;
+      final File destinationFile = File('$destinationPath$contentName');
+      ftpConnect.downloadFile(contentName, destinationFile);
     }
   }
 

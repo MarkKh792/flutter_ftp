@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ftpconnect/ftpconnect.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../ftp_manager.dart';
 
@@ -26,7 +27,17 @@ class _MainPageState extends State<MainPage> {
 
   bool showPassword = false;
 
-  FtpManager ftpManager = FtpManager();
+  final FtpManager ftpManager = FtpManager();
+
+  @override
+  void initState() {
+    // Get the "Downloads" directory. Does not work on Android.
+    getDownloadsDirectory().then(
+      (value) => ftpManager.downloadDirectory = value,
+    );
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,8 +195,16 @@ class _MainPageState extends State<MainPage> {
       children: [
         for (int i = 0; i < elements.length; i++)
           ListTile(
+            trailing: OutlinedButton(
+              onPressed: () {
+                ftpManager.downloadContent(
+                    elements[i].type, elements[i].name, 'destinationPath');
+              },
+              child: const Text('Download'),
+            ),
             title: Text(
-                '[${elements[i].type.name}]  ${elements[i].size}  ${elements[i].name}'),
+              '[${elements[i].type.name}]  ${elements[i].size}  ${elements[i].name}',
+            ),
             onTap: () {
               if (elements[i].type == FTPEntryType.DIR) {
                 ftpManager.nextDirectory(elements[i].name);
