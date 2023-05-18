@@ -92,6 +92,12 @@ class _MainPageState extends State<MainPage> {
                           themeColor,
                           _getGetDirectoryNamesButtonSpecs(snapshot.data!),
                         ),
+                        const SizedBox(width: 10),
+                        /*_buildOutlinedButton(
+                          themeColor,
+                          _getUploadFileSpecs(snapshot.data!,
+                              /*'myDir'*/ '/home/mark/Downloads/btn_lava.png'),
+                        ),*/
                       ],
                     );
                   }),
@@ -195,12 +201,26 @@ class _MainPageState extends State<MainPage> {
       children: [
         for (int i = 0; i < elements.length; i++)
           ListTile(
-            trailing: OutlinedButton(
-              onPressed: () {
-                ftpManager.downloadContent(
-                    elements[i].type, elements[i].name, 'destinationPath');
-              },
-              child: const Text('Download'),
+            trailing: SizedBox(
+              width: 220,
+              child: Row(
+                children: [
+                  OutlinedButton(
+                    onPressed: () => ftpManager.downloadContent(
+                        elements[i].type, elements[i].name, 'destinationPath'),
+                    child: const Text('Download'),
+                  ),
+                  const SizedBox(width: 10),
+                  OutlinedButton(
+                    onPressed: () {
+                      elements[i].type == FTPEntryType.DIR
+                          ? ftpManager.deleteDirectory(elements[i].name)
+                          : ftpManager.deleteFile(elements[i].name);
+                    },
+                    child: const Text('Delete'),
+                  ),
+                ],
+              ),
             ),
             title: Text(
               '[${elements[i].type.name}]  ${elements[i].size}  ${elements[i].name}',
@@ -268,6 +288,23 @@ class _MainPageState extends State<MainPage> {
           Icons.arrow_back,
           color: Colors.red,
         ),
+      ),
+    );
+  }
+
+  (void Function()? onTap, Widget title) _getUploadFileSpecs(
+    bool isConnected,
+    String filePath,
+  ) {
+    return (
+      isConnected
+          ? () => ftpManager.uploadFile(
+              filePath) /*() => ftpManager.createDirectory(filePath)*/
+          : null,
+      Text(
+        'Upload file',
+        style: TextStyle(
+            fontSize: 14, color: isConnected ? Colors.black : Colors.grey),
       ),
     );
   }

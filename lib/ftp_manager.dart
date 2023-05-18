@@ -31,6 +31,8 @@ class FtpManager {
       bool result = await ftpConnect.connect();
       _updateConnectionState(result);
       _logMessage('CONNECT', 'Connected: $_isConnected');
+
+      getDirectoryContent();
     } catch (e) {
       _logErrorMessage('CONNECT', 'Connection error!, ${e.toString()}');
     }
@@ -90,13 +92,15 @@ class FtpManager {
     try {
       final status = await ftpConnect.changeDirectory(name);
 
-      status
-          ? _logMessage('CHANGE DIR', 'Changed directory to $name')
-          : _logErrorMessage(
-              'CHANGE DIR', 'Failed to change directory to $name');
+      _logMessage(
+          'CHANGE DIR',
+          status
+              ? 'Changed directory to $name'
+              : 'Failed to change directory to $name');
 
-      // Get the content of this directory
-      getDirectoryContent();
+      if (status) {
+        getDirectoryContent();
+      }
     } on FTPConnectException catch (e) {
       if (e.message.contains('Timeout')) {
         _updateConnectionState(false);
@@ -128,8 +132,84 @@ class FtpManager {
 
     if (type == FTPEntryType.FILE) {
       final destinationPath = downloadDirectory!.path;
-      final File destinationFile = File('$destinationPath$contentName');
+      final File destinationFile = File('$destinationPath/$contentName');
       ftpConnect.downloadFile(contentName, destinationFile);
+    }
+  }
+
+  void createDirectory(String name) async {
+    try {
+      final result = await ftpConnect.makeDirectory(name);
+      _logMessage('CREATE DIR', result ? 'Success!' : 'Failed');
+
+      if (result) {
+        getDirectoryContent();
+      }
+    } on FTPConnectException catch (e) {
+      if (e.message.contains('Timeout')) {
+        _updateConnectionState(false);
+      }
+
+      _logErrorMessage('CREATE DIR', e.toString());
+    } catch (e) {
+      _logErrorMessage('CREATE DIR', e.toString());
+    }
+  }
+
+  void deleteDirectory(String name) async {
+    try {
+      final result = await ftpConnect.deleteDirectory(name, ListCommand.LIST);
+      _logMessage('DELETE DIR', result ? 'Success!' : 'Failed');
+
+      if (result) {
+        getDirectoryContent();
+      }
+    } on FTPConnectException catch (e) {
+      if (e.message.contains('Timeout')) {
+        _updateConnectionState(false);
+      }
+
+      _logErrorMessage('DELETE DIR', e.toString());
+    } catch (e) {
+      _logErrorMessage('DELETE DIR', e.toString());
+    }
+  }
+
+  void deleteFile(String name) async {
+    try {
+      final result = await ftpConnect.deleteFile(name);
+      _logMessage('DELETE FILE', result ? 'Success!' : 'Failed');
+
+      getDirectoryContent();
+    } on FTPConnectException catch (e) {
+      if (e.message.contains('Timeout')) {
+        _updateConnectionState(false);
+      }
+
+      _logErrorMessage('DELETE FILE', e.toString());
+    } catch (e) {
+      _logErrorMessage('DELETE FILE', e.toString());
+    }
+  }
+
+  void uploadFile(String path) async {
+    try {
+      final fileToUpload = File(path);
+      final result = await ftpConnect.uploadFile(fileToUpload);
+
+      _logMessage('UPLOAD FILE', result ? 'Success!' : 'Failed');
+
+      if (result) {
+        getDirectoryContent();
+      }
+    } on FTPConnectException catch (e) {
+      if (e.message.contains('Timeout')) {
+        _updateConnectionState(false);
+      }
+
+      _logErrorMessage('UPLOAD FILE', e.toString());
+    } catch (e) {
+      _logErrorMessage('UPLOAD FILE', e.toString());
     }
   }
 
