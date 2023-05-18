@@ -85,6 +85,12 @@ class _MainPageState extends State<MainPage> {
                     );
                   }),
               const SizedBox(height: 10),
+              Row(
+                children: [
+                  _buildOutlinedButton(
+                      Colors.transparent, _getBackButtonSpecs()),
+                ],
+              ),
               Expanded(
                   child: StreamBuilder<List<FTPEntry>>(
                 initialData: const [],
@@ -182,7 +188,7 @@ class _MainPageState extends State<MainPage> {
                 '[${elements[i].type.name}]  ${elements[i].size}  ${elements[i].name}'),
             onTap: () {
               if (elements[i].type == FTPEntryType.DIR) {
-                ftpManager.changeDirectory(elements[i].name);
+                ftpManager.nextDirectory(elements[i].name);
               }
             },
           )
@@ -231,6 +237,18 @@ class _MainPageState extends State<MainPage> {
         'Get names only',
         style: TextStyle(
             fontSize: 14, color: isConnected ? Colors.black : Colors.grey),
+      ),
+    );
+  }
+
+  (void Function()? onTap, Widget title) _getBackButtonSpecs() {
+    return (
+      () => ftpManager.previousDirectory(),
+      GestureDetector(
+        child: const Icon(
+          Icons.arrow_back,
+          color: Colors.red,
+        ),
       ),
     );
   }

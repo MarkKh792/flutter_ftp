@@ -6,6 +6,7 @@ import 'package:ftpconnect/ftpconnect.dart';
 class FtpManager {
   late final FTPConnect ftpConnect;
   bool _isConnected = false;
+  List<String> history = ['/'];
   final StreamController<bool> _connectionController =
       StreamController.broadcast();
   final StreamController<List<FTPEntry>> _filesController = StreamController();
@@ -74,7 +75,7 @@ class FtpManager {
     }
   }
 
-  void changeDirectory(String name) async {
+  void _changeDirectory(String name) async {
     try {
       final status = await ftpConnect.changeDirectory(name);
       _logMessage('Changed directory to $name: $status');
@@ -90,6 +91,18 @@ class FtpManager {
     } catch (e) {
       _logErrorMessage(e.toString());
     }
+  }
+
+  void nextDirectory(String name) {
+    history.add(name);
+    _changeDirectory(name);
+  }
+
+  void previousDirectory() {
+    if (history.length <= 1) return;
+    history.removeLast();
+
+    _changeDirectory(history.last);
   }
 
   void _updateConnectionState(bool connectionState) {
