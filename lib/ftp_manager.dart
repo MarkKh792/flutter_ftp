@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:ftpconnect/ftpconnect.dart';
 
 class FtpManager {
-  late final FTPConnect ftpConnect;
+  late FTPConnect ftpConnect;
   bool _isConnected = false;
   List<String> history = ['/'];
   late final Directory? downloadDirectory;
