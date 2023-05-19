@@ -25,6 +25,8 @@ class _MainPageState extends State<MainPage> {
   final TextEditingController portTextController =
       TextEditingController(text: '21');
 
+  final TextEditingController newDirController = TextEditingController();
+
   bool showPassword = false;
 
   final FtpManager ftpManager = FtpManager();
@@ -93,29 +95,48 @@ class _MainPageState extends State<MainPage> {
                           _getGetDirectoryNamesButtonSpecs(snapshot.data!),
                         ),
                         const SizedBox(width: 10),
-                        /*_buildOutlinedButton(
+                        _buildOutlinedButton(
                           themeColor,
-                          _getUploadFileSpecs(snapshot.data!,
-                              /*'myDir'*/ '/home/mark/Downloads/btn_lava.png'),
-                        ),*/
+                          _getUploadFileSpecs(
+                            snapshot.data!,
+                            '/home/mark/Downloads/btn_lava.png',
+                          ),
+                        ),
                       ],
                     );
                   }),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  _buildOutlinedButton(
-                      Colors.transparent, _getBackButtonSpecs()),
-                ],
-              ),
-              Expanded(
-                  child: StreamBuilder<List<FTPEntry>>(
-                initialData: const [],
-                stream: ftpManager.filesStream,
+              StreamBuilder<bool>(
+                  initialData: false,
+                  stream: ftpManager.connectionStream,
+                  builder: (context, snapshot) {
+                    return Row(
+                      children: [
+                        _buildOutlinedButton(
+                          Colors.transparent,
+                          _getBackButtonSpecs(snapshot.data!),
+                        ),
+                      ],
+                    );
+                  }),
+              StreamBuilder<bool>(
+                initialData: false,
+                stream: ftpManager.connectionStream,
                 builder: (context, snapshot) {
-                  return _buildFilesList(snapshot.data!);
+                  return Visibility(
+                    visible: snapshot.data!,
+                    child: Expanded(
+                      child: StreamBuilder<List<FTPEntry>>(
+                        initialData: const [],
+                        stream: ftpManager.filesStream,
+                        builder: (context, snapshot) {
+                          return _buildFilesList(snapshot.data!);
+                        },
+                      ),
+                    ),
+                  );
                 },
-              ) /*Container(color: Colors.grey)*/)
+              )
             ],
           ),
         ),
@@ -199,6 +220,17 @@ class _MainPageState extends State<MainPage> {
   Widget _buildFilesList(List<FTPEntry> elements) {
     return ListView(
       children: [
+        ListTile(
+          title: Row(
+            children: [
+              _buildTextField(newDirController, 'New directory'),
+              _buildOutlinedButton(
+                Colors.transparent,
+                _getCreateDirSpecs(newDirController),
+              ),
+            ],
+          ),
+        ),
         for (int i = 0; i < elements.length; i++)
           ListTile(
             trailing: SizedBox(
@@ -280,13 +312,13 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  (void Function()? onTap, Widget title) _getBackButtonSpecs() {
+  (void Function()? onTap, Widget title) _getBackButtonSpecs(bool isConnected) {
     return (
-      () => ftpManager.previousDirectory(),
+      isConnected ? () => ftpManager.previousDirectory() : null,
       GestureDetector(
-        child: const Icon(
+        child: Icon(
           Icons.arrow_back,
-          color: Colors.red,
+          color: isConnected ? Colors.red : null,
         ),
       ),
     );
@@ -297,15 +329,24 @@ class _MainPageState extends State<MainPage> {
     String filePath,
   ) {
     return (
-      isConnected
-          ? () => ftpManager.uploadFile(
-              filePath) /*() => ftpManager.createDirectory(filePath)*/
-          : null,
+      isConnected ? () => ftpManager.uploadFile(filePath) : null,
       Text(
         'Upload file',
         style: TextStyle(
             fontSize: 14, color: isConnected ? Colors.black : Colors.grey),
       ),
+    );
+  }
+
+  (void Function()? onTap, Widget title) _getCreateDirSpecs(
+    TextEditingController controller,
+  ) {
+    return (
+      () {
+        ftpManager.createDirectory(controller.text);
+        controller.clear();
+      },
+      const Text('Create'),
     );
   }
 }

@@ -12,8 +12,8 @@ class FtpManager {
   late final Directory? downloadDirectory;
   final StreamController<bool> _connectionController =
       StreamController.broadcast();
-  final StreamController<List<FTPEntry>> _filesController = StreamController();
-
+  final StreamController<List<FTPEntry>> _filesController =
+      StreamController.broadcast();
   bool get isConnected => _isConnected;
   Stream<List<FTPEntry>> get filesStream => _filesController.stream;
   Stream<bool> get connectionStream => _connectionController.stream;
