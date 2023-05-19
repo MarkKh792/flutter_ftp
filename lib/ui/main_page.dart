@@ -111,10 +111,16 @@ class _MainPageState extends State<MainPage> {
                   stream: ftpManager.connectionStream,
                   builder: (context, snapshot) {
                     return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildOutlinedButton(
                           Colors.transparent,
                           _getBackButtonSpecs(snapshot.data!),
+                        ),
+                        const SizedBox(width: 10),
+                        _buildOutlinedButton(
+                          Colors.transparent,
+                          _getHomeButtonSpecs(snapshot.data!),
                         ),
                       ],
                     );
@@ -318,6 +324,22 @@ class _MainPageState extends State<MainPage> {
       GestureDetector(
         child: Icon(
           Icons.arrow_back,
+          color: isConnected ? Colors.red : null,
+        ),
+      ),
+    );
+  }
+
+  (void Function()? onTap, Widget title) _getHomeButtonSpecs(bool isConnected) {
+    return (
+      isConnected
+          ? () {
+              ftpManager.nextDirectory('/');
+            }
+          : null,
+      GestureDetector(
+        child: Icon(
+          Icons.home,
           color: isConnected ? Colors.red : null,
         ),
       ),

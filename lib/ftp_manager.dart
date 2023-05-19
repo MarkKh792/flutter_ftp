@@ -7,8 +7,8 @@ import 'package:logger/logger.dart';
 class FtpManager {
   late FTPConnect ftpConnect;
   final Logger logger = Logger(printer: PrettyPrinter(methodCount: 0));
+  String currentDirectory = '/';
   bool _isConnected = false;
-  List<String> history = ['/'];
   late final Directory? downloadDirectory;
   final StreamController<bool> _connectionController =
       StreamController.broadcast();
@@ -75,7 +75,7 @@ class FtpManager {
       _filesController.add(files);
       _logMessage(
         'GET DIR CONTENT',
-        'got ${files.length} elements in "${history.last}"',
+        'got ${files.length} elements in "$currentDirectory"',
       );
     } on FTPConnectException catch (e) {
       if (e.message.contains('Timeout')) {
@@ -92,15 +92,16 @@ class FtpManager {
     try {
       final status = await ftpConnect.changeDirectory(name);
 
+      if (status) {
+        currentDirectory = await ftpConnect.currentDirectory();
+        getDirectoryContent();
+      }
+
       _logMessage(
           'CHANGE DIR',
           status
-              ? 'Changed directory to $name'
-              : 'Failed to change directory to $name');
-
-      if (status) {
-        getDirectoryContent();
-      }
+              ? 'Changed directory to "$currentDirectory"'
+              : 'Failed to change directory to "$name"');
     } on FTPConnectException catch (e) {
       if (e.message.contains('Timeout')) {
         _updateConnectionState(false);
@@ -230,15 +231,12 @@ class FtpManager {
   }
 
   void nextDirectory(String name) {
-    history.add(name);
     _changeDirectory(name);
   }
 
   void previousDirectory() {
-    if (history.length <= 1) return;
-    history.removeLast();
-
-    _changeDirectory(history.last);
+    if (currentDirectory == '/') return;
+    _changeDirectory('..');
   }
 
   void _updateConnectionState(bool connectionState) {
